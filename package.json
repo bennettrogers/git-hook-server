@@ -17,6 +17,7 @@
     "url": "https://github.com/bennettrogers/git-hook-server/issues"
   },
   "dependencies": {
-    "hapi": "~9.0.2"
+    "hapi": "~9.0.2",
+    "joi": "~6.6.1"
   }
 }
