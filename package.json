@@ -1,0 +1,22 @@
+{
+  "name": "git-hook-server",
+  "version": "0.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bennettrogers/git-hook-server.git"
+  },
+  "author": "Bennett Rogers",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bennettrogers/git-hook-server/issues"
+  },
+  "dependencies": {
+    "hapi": "~9.0.2"
+  }
+}
