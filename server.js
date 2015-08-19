@@ -1,5 +1,6 @@
 var Hapi = require('hapi');
 var Joi = require('joi');
+var child_process = require('child_process');
 
 var server = new Hapi.Server();
 server.connection({
@@ -9,20 +10,60 @@ server.connection({
 
 var githubPushHandler = function(request, reply) {
     console.log('github push received');
-    var repoUrl = request.payload.repository.html_url;
-    processPush(repoUrl);
+    var gitHost = 'github.com';
+    var repoName = request.payload.repository.name;
+    var ownerName = request.payload.repository.owner.name;
+    onPush(gitHost, repoName, ownerName);
     reply();
 };
 
 var bitbucketPushHandler = function(request, reply) {
     console.log('bitbucket push received');
-    var repoUrl = request.payload.repository.links.html.href;
-    processPush(repoUrl);
+    var gitHost = 'bitbucket.org';
+    var repoName = request.payload.repository.name;
+    var ownerName = request.payload.repository.owner.username;
+    onPush(gitHost, repoName, ownerName);
     reply();
 };
 
-var processPush = function(repoUrl) {
-    console.log(repoUrl);
+var onPush = function(gitHost, repoName, ownerName) {
+    var buildScript = './scripts/build.sh'; //TODO: make this a config option
+    var publishScript = './scripts/publish-s3.sh'; //TODO: make this a config option
+    var bucket = 'thoughts.blrog.com'; //TODO: make this a config option
+    var workdir = '/tmp'; //TODO: make this a config option
+    var branch = 'master'; //TODO: make this a config option
+    var publicRepo = false; //TODO: make this a config option
+
+    var repoUrl = gitHost + '/' + ownerName + '/' + repoName;
+    if(publicRepo) {
+        repoUrl = 'https://' + gitHost + '/' + ownerName + '/' + repoName;
+    } else {
+        repoUrl = 'git@' + gitHost + ':' + ownerName + '/' + repoName;
+    }
+
+    run(buildScript, [repoName, repoUrl, branch, workdir], function(err) {
+        if(err) {
+            console.warn('Failed to build ' + repoUrl);
+            // TODO: notify me somehow (email?)
+            return;
+        }
+        run(publishScript, [repoName, workdir, bucket], function(err) {
+            if(err) {
+                console.warn('Failed to publish ' + repoUrl);
+                // TODO: notify me somehow (email?)
+                return;
+            }
+            console.log('Successfully published ' + repoUrl);
+        });
+    });
+}
+
+var run = function(file, params, callback) {
+    child_process.execFile(file, params, function(error, stdout, stderr) {
+        console.log(stdout);
+        console.warn(stderr);
+        callback(error !== null);
+    });
 }
 
 var bitbucketPostConfig = {
