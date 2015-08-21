@@ -35,13 +35,15 @@ var onPush = function(gitHost, repoName, ownerName) {
     var publicRepo = false; //TODO: make this a config option
 
     var repoUrl = gitHost + '/' + ownerName + '/' + repoName;
+    var repoKey = '';
     if(publicRepo) {
         repoUrl = 'https://' + gitHost + '/' + ownerName + '/' + repoName;
     } else {
         repoUrl = 'git@' + gitHost + ':' + ownerName + '/' + repoName;
+        repoKey = '~/.ssh/blog_deploy_key.pem'; // TODO: make this a config option
     }
 
-    run(buildScript, [repoName, repoUrl, branch, workdir], function(err) {
+    run(buildScript, [repoName, repoUrl, repoKey, branch, workdir], function(err) {
         if(err) {
             console.warn('Failed to build ' + repoUrl);
             // TODO: notify me somehow (email?)
